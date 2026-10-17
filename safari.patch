@@ -1,0 +1,38 @@
+Subject: [PATCH] build: add safari build
+---
+Index: extension.config.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/extension.config.js b/extension.config.js
+--- a/extension.config.js	(revision 86d0edfb244aa6ecdf0851c65301d4e4bc93cb4e)
++++ b/extension.config.js	(revision 75afda8c30de598cff93f85fc63c86e2ee49b0ad)
+@@ -128,6 +128,11 @@
+       excludeBrowserFlags: ["--hide-scrollbars", "--disable-component-extensions-with-background-pages"],
+       startingUrl: "https://music.youtube.com/",
+     },
++    safari: {
++      appName: "Better Lyrics",
++      bundleId: "org.betterlyrics.better-lyrics",
++      developmentTeam: process.env.APPLE_DEVELOPMENT_TEAM,
++    }
+   },
+   commands: {
+     dev: {
+Index: package.json
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/package.json b/package.json
+--- a/package.json	(revision 86d0edfb244aa6ecdf0851c65301d4e4bc93cb4e)
++++ b/package.json	(revision 75afda8c30de598cff93f85fc63c86e2ee49b0ad)
+@@ -14,6 +14,7 @@
+         "build:ci": "npm run generate:locales && tsx tooling/build-and-patch.ts",
+         "build:zip": "npm run generate:locales && extension build --browser all --zip",
+         "build:release": "npm run generate:locales && tsx tooling/build-release-zip.ts",
++        "build:safari": "npm run generate:locales && extension build --browser safari",
+         "preview": "npm run generate:locales && extension preview",
+         "lint": "biome lint --write . && biome format --write .",
+         "update-version": "tsx tooling/update-version.ts",
