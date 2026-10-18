@@ -27,3 +27,5 @@ jobs:
       - name: Check upstream release
         id: check-upstream-release
         run: cargo run -r --bin check_upstream_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
