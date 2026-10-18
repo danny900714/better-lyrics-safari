@@ -1,11 +1,12 @@
 use anyhow::{Context, bail};
 use octocrab::Octocrab;
-use semver::Version;
+use semver::{BuildMetadata, Version};
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 
 const UPSTREAM_OWNER: &str = "better-lyrics";
 const UPSTREAM_REPO: &str = "better-lyrics";
+const SEMVER_BUILD_METADATA_PREFIX: &str = "safari.";
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
@@ -60,14 +61,14 @@ async fn main() -> Result<(), anyhow::Error> {
             .unwrap_or("None")
     );
 
+    let upstream_version = Version::parse(
+        upstream_release
+            .tag_name
+            .strip_prefix("v")
+            .unwrap_or(&upstream_release.tag_name),
+    )
+    .context("Failed to parse the tag name of the upstream release as SemVer")?;
     if let Some(current_release) = current_release {
-        let upstream_version = Version::parse(
-            upstream_release
-                .tag_name
-                .strip_prefix("v")
-                .unwrap_or(&upstream_release.tag_name),
-        )
-        .context("Failed to parse the tag name of the upstream release as SemVer")?;
         let current_version = Version::parse(
             current_release
                 .tag_name
@@ -77,17 +78,58 @@ async fn main() -> Result<(), anyhow::Error> {
         .context("Failed to parse the tag name of the current release as SemVer")?;
 
         if upstream_version > current_version {
-            set_output(&upstream_release.tag_name).await?;
+            let release_name = draft_release_name(&upstream_version, Some(&current_version))?;
+            println!("Release name: {release_name}");
+
+            set_step_output(&upstream_release.tag_name, &release_name).await?;
         }
     } else {
-        set_output(&upstream_release.tag_name).await?;
+        let release_name = draft_release_name(&upstream_version, None)?;
+        println!("Release name: {release_name}");
+
+        set_step_output(&upstream_release.tag_name, &release_name).await?;
     }
 
     Ok(())
 }
 
-async fn set_output(new_upstream_version: &str) -> Result<(), anyhow::Error> {
-    let output = format!("new-upstream-version={}", new_upstream_version);
+fn draft_release_name(
+    upstream_version: &Version,
+    current_version: Option<&Version>,
+) -> Result<String, anyhow::Error> {
+    let mut version = upstream_version.clone();
+    if let Some(current_version) = current_version
+        && current_version
+            .build
+            .starts_with(SEMVER_BUILD_METADATA_PREFIX)
+    {
+        let build_number = current_version
+            .build
+            .strip_prefix(SEMVER_BUILD_METADATA_PREFIX)
+            .unwrap()
+            .parse::<u32>()
+            .context(format!(
+                "Failed to parse build number from current version ({version})"
+            ))?;
+        let build_metadata = BuildMetadata::new(&format!(
+            "{SEMVER_BUILD_METADATA_PREFIX}{}",
+            build_number + 1
+        ))?;
+        version.build = build_metadata;
+    } else {
+        let build_metadata = BuildMetadata::new(&format!("{SEMVER_BUILD_METADATA_PREFIX}0"))?;
+        version.build = build_metadata;
+    }
+
+    Ok(version.to_string())
+}
+
+async fn set_step_output(
+    new_upstream_version: &str,
+    release_name: &str,
+) -> Result<(), anyhow::Error> {
+    let output =
+        format!("new-upstream-version={new_upstream_version}\nrelease-name={release_name}\n");
 
     let github_output_env = std::env::var("GITHUB_OUTPUT")
         .context("Failed to get the GITHUB_OUTPUT environment variable")?;

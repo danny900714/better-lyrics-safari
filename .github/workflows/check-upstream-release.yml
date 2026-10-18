@@ -8,6 +8,7 @@ on:
 
 jobs:
   check-release:
+    name: Check upstream release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,3 +30,7 @@ jobs:
         run: cargo run -r --bin check_upstream_release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    outputs:
+      new-upstream-version: ${{ steps.check-upstream-release.outputs.new-upstream-version }}
+      release-name: ${{ steps.check-upstream-release.outputs.release-name }}
