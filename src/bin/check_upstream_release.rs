@@ -1,4 +1,4 @@
-use anyhow::{Context, bail};
+use anyhow::{Context, anyhow, bail};
 use octocrab::Octocrab;
 use semver::{BuildMetadata, Version};
 use tokio::fs::File;
@@ -97,29 +97,31 @@ fn draft_release_name(
     upstream_version: &Version,
     current_version: Option<&Version>,
 ) -> Result<String, anyhow::Error> {
-    let mut version = upstream_version.clone();
-    if let Some(current_version) = current_version
-        && current_version
-            .build
-            .starts_with(SEMVER_BUILD_METADATA_PREFIX)
+    // Only increment the number of the build metadata if the upstream version is the same as the current version
+    // Otherwise, set the version to the upstream version and reset the number of the build metadata to 0
+    let build_metadata = if let Some(current_version) = current_version
+        && upstream_version == current_version
     {
         let build_number = current_version
             .build
             .strip_prefix(SEMVER_BUILD_METADATA_PREFIX)
-            .unwrap()
+            .ok_or(anyhow!(
+                "Failed to strip prefix from the build metadata of current version ({current_version})"
+            ))?
             .parse::<u32>()
             .context(format!(
-                "Failed to parse build number from current version ({version})"
+                "Failed to parse build number from current version ({current_version})"
             ))?;
-        let build_metadata = BuildMetadata::new(&format!(
+        BuildMetadata::new(&format!(
             "{SEMVER_BUILD_METADATA_PREFIX}{}",
             build_number + 1
-        ))?;
-        version.build = build_metadata;
+        ))?
     } else {
-        let build_metadata = BuildMetadata::new(&format!("{SEMVER_BUILD_METADATA_PREFIX}0"))?;
-        version.build = build_metadata;
-    }
+        BuildMetadata::new(&format!("{SEMVER_BUILD_METADATA_PREFIX}0"))?
+    };
+
+    let mut version = upstream_version.clone();
+    version.build = build_metadata;
 
     Ok(version.to_string())
 }
