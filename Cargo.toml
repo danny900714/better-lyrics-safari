@@ -1,0 +1,10 @@
+[package]
+name = "better-lyrics-safari"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.104"
+octocrab = "0.54.5"
+semver = "1.0.28"
+tokio = { version = "1.53.3", features = ["fs", "io-std", "io-util", "macros", "rt-multi-thread"] }
