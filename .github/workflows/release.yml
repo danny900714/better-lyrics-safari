@@ -1,0 +1,69 @@
+name: Release
+on:
+  workflow_dispatch:
+    inputs: &inputs
+      upstream-tag:
+        description: The tag of the upstream repository to release from
+        required: true
+        type: string
+      release-name:
+        description: The name of the release
+        required: true
+        type: string
+  workflow_call:
+    inputs: *inputs
+    secrets:
+      signing-certificate-base64:
+        description: Base64-encoded Apple signing certificate
+        required: true
+      signing-certificate-password:
+        description: Password for the signing certificate
+        required: true
+      keychain-password:
+        description: Password for the keychain
+        required: true
+
+jobs:
+  release:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Checkout upstream repository
+        run: |
+          git -c advice.detachedHead=false clone --depth 1 --branch ${{ inputs.upstream-tag }} \
+          https://github.com/better-lyrics/better-lyrics.git \
+          "$RUNNER_TEMP/better-lyrics"
+
+      - name: Check safari patch
+        run: git apply --check --stat "$GITHUB_WORKSPACE/safari.patch"
+        working-directory: ${{ runner.temp }}/better-lyrics
+
+      - name: Apply safari patch
+        run: git apply "$GITHUB_WORKSPACE/safari.patch"
+        working-directory: ${{ runner.temp }}/better-lyrics
+
+      - name: Install the apple signing certificate
+        env:
+          SIGNING_CERTIFICATE_BASE64: ${{ secrets.signing-certificate-base64 }}
+          SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.signing-certificate-password }}
+          KEYCHAIN_PASSWORD: ${{ secrets.keychain-password }}
+        run: |
+          # Create variables
+          SIGNING_CERTIFICATE_PATH="$RUNNER_TEMP/signing-certificate.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          
+          # Import certificate and provisioning profile from secrets
+          echo -n "$SIGNING_CERTIFICATE_BASE64" | base64 --decode -o "$SIGNING_CERTIFICATE_PATH"
+          
+          # Create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 1800 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          
+          # Import signing certificate to keychain
+          security import "$SIGNING_CERTIFICATE_PATH" -P "$SIGNING_CERTIFICATE_PASSWORD" -A -t cert -f -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
