@@ -32,23 +32,29 @@ jobs:
     permissions:
       contents: write
 
+    env:
+      UPSTREAM_DIR: ${{ runner.temp }}/better-lyrics
+      DMG_NAME: better-lyrics-${{ inputs.release-name }}.dmg
+
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
       - name: Checkout upstream repository
+        env:
+          UPSTREAM_TAG: ${{ inputs.upstream-tag }}
         run: |
-          git -c advice.detachedHead=false clone --depth 1 --branch ${{ inputs.upstream-tag }} \
+          git -c advice.detachedHead=false clone --depth 1 --branch '$UPSTREAM_TAG' \
           https://github.com/better-lyrics/better-lyrics.git \
-          "$RUNNER_TEMP/better-lyrics"
+          '$UPSTREAM_DIR'
 
       - name: Check safari patch
         run: git apply --check --stat "$GITHUB_WORKSPACE/safari.patch"
-        working-directory: ${{ runner.temp }}/better-lyrics
+        working-directory: ${{ env.UPSTREAM_DIR }}
 
       - name: Apply safari patch
         run: git apply "$GITHUB_WORKSPACE/safari.patch"
-        working-directory: ${{ runner.temp }}/better-lyrics
+        working-directory: ${{ env.UPSTREAM_DIR }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
@@ -61,7 +67,7 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: ${{ runner.temp }}/better-lyrics
+        working-directory: ${{ env.UPSTREAM_DIR }}
 
       - name: Install the apple signing certificate
         env:
@@ -75,16 +81,20 @@ jobs:
           APPLE_DEVELOPMENT_TEAM: ${{ vars.APPLE_DEVELOPMENT_TEAM }}
           RELEASE_NAME: ${{ inputs.release-name }}
         run: npm run build:safari
-        working-directory: ${{ runner.temp }}/better-lyrics
+        working-directory: ${{ env.UPSTREAM_DIR }}
 
       - name: Create DMG
         run: create-dmg --no-version-in-filename "dist/safari-xcode/.derived/Build/Products/Release/Better Lyrics.app"
-        working-directory: ${{ runner.temp }}/better-lyrics
+        working-directory: ${{ env.UPSTREAM_DIR }}
+
+      - name: Rename DMG
+        run: mv 'Better Lyrics.dmg' "$DMG_NAME"
+        working-directory: ${{ env.UPSTREAM_DIR }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          path: ${{ runner.temp }}/better-lyrics/Better Lyrics.dmg
+          path: ${{ env.UPSTREAM_DIR }}/${{ env.DMG_NAME }}
           archive: false
           if-no-files-found: error
 
@@ -95,6 +105,6 @@ jobs:
           tag_name: v${{ inputs.release-name }}
           body: This release is based on upstream [Better Lyrics ${{ inputs.upstream-tag }}](https://github.com/better-lyrics/better-lyrics/releases/tag/${{ inputs.upstream-tag }}).
           generate_release_notes: true
-          files: Better Lyrics.dmg
-          working_directory: ${{ runner.temp }}/better-lyrics
+          files: ${{ env.DMG_NAME }}
+          working_directory: ${{ env.UPSTREAM_DIR }}
           fail_on_unmatched_files: true
