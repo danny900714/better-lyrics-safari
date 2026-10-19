@@ -67,23 +67,7 @@ jobs:
           SIGNING_CERTIFICATE_BASE64: ${{ secrets.SIGNING_CERTIFICATE_BASE64 }}
           SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-        run: |
-          # Create variables
-          SIGNING_CERTIFICATE_PATH="$RUNNER_TEMP/signing-certificate.p12"
-          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
-          
-          # Import certificate and provisioning profile from secrets
-          echo -n "$SIGNING_CERTIFICATE_BASE64" | base64 --decode -o "$SIGNING_CERTIFICATE_PATH"
-          
-          # Create temporary keychain
-          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security set-keychain-settings -lut 1800 "$KEYCHAIN_PATH"
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          
-          # Import signing certificate to keychain
-          security import "$SIGNING_CERTIFICATE_PATH" -P "$SIGNING_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
-          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security list-keychain -d user -s "$KEYCHAIN_PATH"
+        run: scripts/install-signing-certificate.sh
 
       - &build
         name: Build the extension for Safari
@@ -95,15 +79,7 @@ jobs:
       - name: Patch the app version and minimum deployment
         env:
           RELEASE_NAME: ${{ inputs.release-name }}
-        run: |
-          # Craft MARKETING_VERSION by stripping the build metadata of RELEASE_NAME
-          MARKETING_VERSION="${RELEASE_NAME%+safari.*}"
-          CURRENT_PROJECT_VERSION=$(date +%s)
-          
-          sed -i '' "s/MARKETING_VERSION = .*;/MARKETING_VERSION = $MARKETING_VERSION;/" 'Better Lyrics.xcodeproj/project.pbxproj'
-          sed -i '' "s/CURRENT_PROJECT_VERSION = .*;/CURRENT_PROJECT_VERSION = $CURRENT_PROJECT_VERSION;/" 'Better Lyrics.xcodeproj/project.pbxproj'
-          sed -i '' 's/MACOSX_DEPLOYMENT_TARGET = [^;]*;/MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";/' 'Better Lyrics.xcodeproj/project.pbxproj'
-        working-directory: ${{ runner.temp }}/better-lyrics/dist/safari-xcode/Better Lyrics
+        run: scripts/patch-xcode-project.sh
 
       - *build
 
