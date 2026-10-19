@@ -69,19 +69,11 @@ jobs:
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: scripts/install-signing-certificate.sh
 
-      - &build
-        name: Build the extension for Safari
+      - name: Build the extension for Safari
         env:
           APPLE_DEVELOPMENT_TEAM: ${{ vars.APPLE_DEVELOPMENT_TEAM }}
         run: npm run build:safari
         working-directory: ${{ runner.temp }}/better-lyrics
-
-      - name: Patch the app version and minimum deployment
-        env:
-          RELEASE_NAME: ${{ inputs.release-name }}
-        run: scripts/patch-xcode-project.sh
-
-      - *build
 
       - name: Create DMG
         run: create-dmg --no-version-in-filename "dist/safari-xcode/.derived/Build/Products/Release/Better Lyrics.app"

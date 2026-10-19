@@ -15,14 +15,31 @@ index eafa5115..bb50b6fa 100644
    commands: {
      dev: {
 diff --git a/package.json b/package.json
-index 9d1b7e49..368ff2bf 100644
+index 9d1b7e49..c3265b12 100644
 --- a/package.json
 +++ b/package.json
 @@ -14,6 +14,7 @@
          "build:ci": "npm run generate:locales && tsx tooling/build-and-patch.ts",
          "build:zip": "npm run generate:locales && extension build --browser all --zip",
          "build:release": "npm run generate:locales && tsx tooling/build-release-zip.ts",
-+        "build:safari": "npm run generate:locales && extension build --browser safari",
++        "build:safari": "npm run generate:locales && extension build --browser safari && ./tooling/patch-xcode-project.sh && extension build --browser safari",
          "preview": "npm run generate:locales && extension preview",
          "lint": "biome lint --write . && biome format --write .",
          "update-version": "tsx tooling/update-version.ts",
+diff --git a/tooling/patch-xcode-project.sh b/tooling/patch-xcode-project.sh
+new file mode 100755
+index 00000000..c8d17548
+--- /dev/null
++++ b/tooling/patch-xcode-project.sh
+@@ -0,0 +1,11 @@
++#!/usr/bin/env bash
++
++XCODE_PROJECT_PATH="./dist/safari-xcode/Better Lyrics"
++
++MARKETING_VERSION="${RELEASE_NAME%+safari.*}" # Strip the build metadata of RELEASE_NAME
++MARKETING_VERSION="${MARKETING_VERSION:-0.0.0}"
++CURRENT_PROJECT_VERSION=$(date +%s)
++
++sed -i '' "s/MARKETING_VERSION = .*;/MARKETING_VERSION = $MARKETING_VERSION;/" "$XCODE_PROJECT_PATH/Better Lyrics.xcodeproj/project.pbxproj"
++sed -i '' "s/CURRENT_PROJECT_VERSION = .*;/CURRENT_PROJECT_VERSION = $CURRENT_PROJECT_VERSION;/" "$XCODE_PROJECT_PATH/Better Lyrics.xcodeproj/project.pbxproj"
++sed -i '' 's/MACOSX_DEPLOYMENT_TARGET = [^;]*;/MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";/' "$XCODE_PROJECT_PATH/Better Lyrics.xcodeproj/project.pbxproj"
