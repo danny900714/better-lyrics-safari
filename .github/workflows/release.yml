@@ -45,6 +45,16 @@ jobs:
         run: git apply "$GITHUB_WORKSPACE/safari.patch"
         working-directory: ${{ runner.temp }}/better-lyrics
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ runner.temp }}/better-lyrics/package-lock.json
+
+      - name: Install create-dmg
+        run: npm install -g create-dmg
+
       - name: Install the apple signing certificate
         env:
           SIGNING_CERTIFICATE_BASE64: ${{ secrets.SIGNING_CERTIFICATE_BASE64 }}
@@ -67,3 +77,22 @@ jobs:
           security import "$SIGNING_CERTIFICATE_PATH" -P "$SIGNING_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security list-keychain -d user -s "$KEYCHAIN_PATH"
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ${{ runner.temp }}/better-lyrics
+
+      - name: Build the extension for Safari
+        run: npm build:safari
+        working-directory: ${{ runner.temp }}/better-lyrics
+
+      - name: Create DMG
+        run: create-dmg --no-version-in-filename "dist/safari-xcode/.derived/Build/Products/Release/Better Lyrics.app"
+        working-directory: ${{ runner.temp }}/better-lyrics
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          path: ${{ runner.temp }}/better-lyrics/Better Lyrics.dmg
+          archive: false
+          if-no-files-found: error
