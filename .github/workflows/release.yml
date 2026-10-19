@@ -13,13 +13,13 @@ on:
   workflow_call:
     inputs: *inputs
     secrets:
-      signing-certificate-base64:
+      SIGNING_CERTIFICATE_BASE64:
         description: Base64-encoded Apple signing certificate
         required: true
-      signing-certificate-password:
+      SIGNING_CERTIFICATE_PASSWORD:
         description: Password for the signing certificate
         required: true
-      keychain-password:
+      KEYCHAIN_PASSWORD:
         description: Password for the keychain
         required: true
 
@@ -47,9 +47,9 @@ jobs:
 
       - name: Install the apple signing certificate
         env:
-          SIGNING_CERTIFICATE_BASE64: ${{ secrets.signing-certificate-base64 }}
-          SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.signing-certificate-password }}
-          KEYCHAIN_PASSWORD: ${{ secrets.keychain-password }}
+          SIGNING_CERTIFICATE_BASE64: ${{ secrets.SIGNING_CERTIFICATE_BASE64 }}
+          SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
           # Create variables
           SIGNING_CERTIFICATE_PATH="$RUNNER_TEMP/signing-certificate.p12"
