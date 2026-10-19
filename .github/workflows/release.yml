@@ -83,7 +83,7 @@ jobs:
         working-directory: ${{ runner.temp }}/better-lyrics
 
       - name: Create DMG
-        run: create-dmg --no-version-in-filename "dist/safari-xcode/.derived/Build/Products/Release/Better Lyrics.app"
+        run: create-dmg --no-code-sign --no-version-in-filename "dist/safari-xcode/.derived/Build/Products/Release/Better Lyrics.app"
         working-directory: ${{ runner.temp }}/better-lyrics
 
       - name: Rename DMG
