@@ -82,7 +82,7 @@ jobs:
           security list-keychain -d user -s "$KEYCHAIN_PATH"
 
       - name: Build the extension for Safari
-        run: npm build:safari
+        run: npm run build:safari
         working-directory: ${{ runner.temp }}/better-lyrics
 
       - name: Create DMG
