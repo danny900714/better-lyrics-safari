@@ -81,11 +81,27 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security list-keychain -d user -s "$KEYCHAIN_PATH"
 
-      - name: Build the extension for Safari
-        run: npm run build:safari
+      - &build
+        name: Build the extension for Safari
         env:
           APPLE_DEVELOPMENT_TEAM: ${{ vars.APPLE_DEVELOPMENT_TEAM }}
+        run: npm run build:safari
         working-directory: ${{ runner.temp }}/better-lyrics
+
+      - name: Patch the app version and minimum deployment
+        env:
+          RELEASE_NAME: ${{ inputs.release-name }}
+        run: |
+          # Craft MARKETING_VERSION by stripping the build metadata of RELEASE_NAME
+          MARKETING_VERSION="${RELEASE_NAME%+safari.*}"
+          CURRENT_PROJECT_VERSION=$(date +%s)
+          
+          sed -i '' "s/MARKETING_VERSION = .*;/MARKETING_VERSION = $MARKETING_VERSION;/" 'Better Lyrics.xcodeproj/project.pbxproj'
+          sed -i '' "s/CURRENT_PROJECT_VERSION = .*;/CURRENT_PROJECT_VERSION = $CURRENT_PROJECT_VERSION;/" 'Better Lyrics.xcodeproj/project.pbxproj'
+          sed -i '' 's/MACOSX_DEPLOYMENT_TARGET = [^;]*;/MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";/' 'Better Lyrics.xcodeproj/project.pbxproj'
+        working-directory: ${{ runner.temp }}/better-lyrics/dist/safari-xcode/Better Lyrics
+
+      - *build
 
       - name: Create DMG
         run: create-dmg --no-version-in-filename "dist/safari-xcode/.derived/Build/Products/Release/Better Lyrics.app"
