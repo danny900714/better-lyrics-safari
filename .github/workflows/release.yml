@@ -63,7 +63,6 @@ jobs:
           SIGNING_CERTIFICATE_BASE64: ${{ secrets.SIGNING_CERTIFICATE_BASE64 }}
           SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-          APPLE_DEVELOPMENT_TEAM: ${{ vars.APPLE_DEVELOPMENT_TEAM }}
         run: |
           # Create variables
           SIGNING_CERTIFICATE_PATH="$RUNNER_TEMP/signing-certificate.p12"
@@ -84,6 +83,8 @@ jobs:
 
       - name: Build the extension for Safari
         run: npm run build:safari
+        env:
+          APPLE_DEVELOPMENT_TEAM: ${{ vars.APPLE_DEVELOPMENT_TEAM }}
         working-directory: ${{ runner.temp }}/better-lyrics
 
       - name: Create DMG
