@@ -28,7 +28,7 @@ index 9d1b7e49..c3265b12 100644
          "update-version": "tsx tooling/update-version.ts",
 diff --git a/tooling/patch-xcode-project.sh b/tooling/patch-xcode-project.sh
 new file mode 100755
-index 00000000..c8d17548
+index 00000000..208b84fd
 --- /dev/null
 +++ b/tooling/patch-xcode-project.sh
 @@ -0,0 +1,11 @@
@@ -42,4 +42,4 @@ index 00000000..c8d17548
 +
 +sed -i '' "s/MARKETING_VERSION = .*;/MARKETING_VERSION = $MARKETING_VERSION;/" "$XCODE_PROJECT_PATH/Better Lyrics.xcodeproj/project.pbxproj"
 +sed -i '' "s/CURRENT_PROJECT_VERSION = .*;/CURRENT_PROJECT_VERSION = $CURRENT_PROJECT_VERSION;/" "$XCODE_PROJECT_PATH/Better Lyrics.xcodeproj/project.pbxproj"
-+sed -i '' 's/MACOSX_DEPLOYMENT_TARGET = [^;]*;/MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";/' "$XCODE_PROJECT_PATH/Better Lyrics.xcodeproj/project.pbxproj"
++sed -i '' 's/MACOSX_DEPLOYMENT_TARGET = [^;]*;/MACOSX_DEPLOYMENT_TARGET = 14.0;/' "$XCODE_PROJECT_PATH/Better Lyrics.xcodeproj/project.pbxproj"
