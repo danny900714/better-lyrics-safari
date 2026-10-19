@@ -33,7 +33,6 @@ jobs:
       contents: write
 
     env:
-      UPSTREAM_DIR: ${{ runner.temp }}/better-lyrics
       DMG_NAME: better-lyrics-${{ inputs.release-name }}.dmg
 
     steps:
@@ -46,15 +45,15 @@ jobs:
         run: |
           git -c advice.detachedHead=false clone --depth 1 --branch '$UPSTREAM_TAG' \
           https://github.com/better-lyrics/better-lyrics.git \
-          '$UPSTREAM_DIR'
+          "$RUNNER_TEMP/better-lyrics"
 
       - name: Check safari patch
         run: git apply --check --stat "$GITHUB_WORKSPACE/safari.patch"
-        working-directory: ${{ env.UPSTREAM_DIR }}
+        working-directory: ${{ runner.temp }}/better-lyrics
 
       - name: Apply safari patch
         run: git apply "$GITHUB_WORKSPACE/safari.patch"
-        working-directory: ${{ env.UPSTREAM_DIR }}
+        working-directory: ${{ runner.temp }}/better-lyrics
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
@@ -67,7 +66,7 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: ${{ env.UPSTREAM_DIR }}
+        working-directory: ${{ runner.temp }}/better-lyrics
 
       - name: Install the apple signing certificate
         env:
@@ -81,20 +80,20 @@ jobs:
           APPLE_DEVELOPMENT_TEAM: ${{ vars.APPLE_DEVELOPMENT_TEAM }}
           RELEASE_NAME: ${{ inputs.release-name }}
         run: npm run build:safari
-        working-directory: ${{ env.UPSTREAM_DIR }}
+        working-directory: ${{ runner.temp }}/better-lyrics
 
       - name: Create DMG
         run: create-dmg --no-version-in-filename "dist/safari-xcode/.derived/Build/Products/Release/Better Lyrics.app"
-        working-directory: ${{ env.UPSTREAM_DIR }}
+        working-directory: ${{ runner.temp }}/better-lyrics
 
       - name: Rename DMG
         run: mv 'Better Lyrics.dmg' "$DMG_NAME"
-        working-directory: ${{ env.UPSTREAM_DIR }}
+        working-directory: ${{ runner.temp }}/better-lyrics
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          path: ${{ env.UPSTREAM_DIR }}/${{ env.DMG_NAME }}
+          path: ${{ runner.temp }}/better-lyrics/${{ env.DMG_NAME }}
           archive: false
           if-no-files-found: error
 
@@ -106,5 +105,5 @@ jobs:
           body: This release is based on upstream [Better Lyrics ${{ inputs.upstream-tag }}](https://github.com/better-lyrics/better-lyrics/releases/tag/${{ inputs.upstream-tag }}).
           generate_release_notes: true
           files: ${{ env.DMG_NAME }}
-          working_directory: ${{ env.UPSTREAM_DIR }}
+          working_directory: ${{ runner.temp }}/better-lyrics
           fail_on_unmatched_files: true
