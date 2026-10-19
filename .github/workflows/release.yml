@@ -49,7 +49,7 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 22
-          cache: npm
+          package-manager-cache: false
 
       - name: Install create-dmg
         run: npm install -g create-dmg
