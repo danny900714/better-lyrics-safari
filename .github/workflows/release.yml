@@ -72,6 +72,7 @@ jobs:
       - name: Build the extension for Safari
         env:
           APPLE_DEVELOPMENT_TEAM: ${{ vars.APPLE_DEVELOPMENT_TEAM }}
+          RELEASE_NAME: ${{ inputs.release-name }}
         run: npm run build:safari
         working-directory: ${{ runner.temp }}/better-lyrics
 
