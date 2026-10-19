@@ -50,7 +50,6 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: ${{ runner.temp }}/better-lyrics/package-lock.json
 
       - name: Install create-dmg
         run: npm install -g create-dmg
