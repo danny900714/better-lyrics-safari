@@ -1,5 +1,5 @@
 diff --git a/extension.config.js b/extension.config.js
-index eafa5115..03e87ed3 100644
+index eafa5115..bb50b6fa 100644
 --- a/extension.config.js
 +++ b/extension.config.js
 @@ -128,6 +128,11 @@ const config = {
@@ -8,7 +8,7 @@ index eafa5115..03e87ed3 100644
      },
 +    safari: {
 +      appName: "Better Lyrics",
-+      bundleId: "org.betterlyrics.better-lyrics",
++      bundleId: "io.github.danny900714.better-lyrics",
 +      developmentTeam: process.env.APPLE_DEVELOPMENT_TEAM,
 +    }
    },
