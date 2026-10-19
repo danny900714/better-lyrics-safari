@@ -25,7 +25,11 @@ on:
 
 jobs:
   release:
+    name: Release
     runs-on: macos-latest
+
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
@@ -113,3 +117,14 @@ jobs:
           path: ${{ runner.temp }}/better-lyrics/Better Lyrics.dmg
           archive: false
           if-no-files-found: error
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          name: ${{ inputs.release-name }}
+          tag_name: v${{ inputs.release-name }}
+          body: This release is based on upstream [Better Lyrics ${{ inputs.upstream-tag }}](https://github.com/better-lyrics/better-lyrics/releases/tag/${{ inputs.upstream-tag }}).
+          generate_release_notes: true
+          files: Better Lyrics.dmg
+          working_directory: ${{ runner.temp }}/better-lyrics
+          fail_on_unmatched_files: true
