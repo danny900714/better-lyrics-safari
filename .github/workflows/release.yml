@@ -43,7 +43,7 @@ jobs:
         env:
           UPSTREAM_TAG: ${{ inputs.upstream-tag }}
         run: |
-          git -c advice.detachedHead=false clone --depth 1 --branch '$UPSTREAM_TAG' \
+          git -c advice.detachedHead=false clone --depth 1 --branch "$UPSTREAM_TAG" \
           https://github.com/better-lyrics/better-lyrics.git \
           "$RUNNER_TEMP/better-lyrics"
 
