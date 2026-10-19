@@ -1,4 +1,5 @@
 name: Release
+run-name: Release ${{ inputs.release-name }} (based on Better Lyrics ${{ inputs.upstream-tag }})
 on:
   workflow_dispatch:
     inputs: &inputs
