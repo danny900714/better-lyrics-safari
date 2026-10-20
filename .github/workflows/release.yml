@@ -149,5 +149,7 @@ jobs:
           VERSION: ${{ inputs.release-name }}
         run: |
           output=$(gh workflow run bump-cask.yml -f cask="$CASK" -f version="$VERSION")
+          echo "Workflow run URL: $output"
           run_id=$(grep -oE 'runs/\d+' <<< "$output" | head -1 | cut -d / -f 2)
+          echo "Workflow run ID: $run_id"
           gh run watch "$run_id" --exit-status
