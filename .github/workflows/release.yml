@@ -23,17 +23,22 @@ on:
       KEYCHAIN_PASSWORD:
         description: Password for the keychain
         required: true
+      HOMEBREW_CASK_BUMPER_PRIVATE_KEY:
+        description: Private key for the Homebrew Cask Bumper GitHub App
+        required: true
+
+env:
+  DMG_NAME: better-lyrics-${{ inputs.release-name }}.dmg
+
+permissions: {}
 
 jobs:
-  release:
-    name: Release
+  build:
+    name: Build
     runs-on: macos-latest
 
     permissions:
-      contents: write
-
-    env:
-      DMG_NAME: better-lyrics-${{ inputs.release-name }}.dmg
+      contents: read
 
     steps:
       - name: Checkout
@@ -97,6 +102,20 @@ jobs:
           archive: false
           if-no-files-found: error
 
+  github-release:
+    name: Create GitHub release
+    runs-on: ubuntu-latest
+    needs: build
+
+    permissions:
+      contents: write # for creating GitHub release
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ env.DMG_NAME }}
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
@@ -105,5 +124,30 @@ jobs:
           body: This release is based on upstream [Better Lyrics ${{ inputs.upstream-tag }}](https://github.com/better-lyrics/better-lyrics/releases/tag/${{ inputs.upstream-tag }}).
           generate_release_notes: true
           files: ${{ env.DMG_NAME }}
-          working_directory: ${{ runner.temp }}/better-lyrics
           fail_on_unmatched_files: true
+
+  bump-homebrew-cask:
+    name: Bump Homebrew cask
+    runs-on: ubuntu-latest
+    needs: github-release
+
+    steps:
+      - name: Create GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.HOMEBREW_CASK_BUMPER_CLIENT_ID }}
+          private-key: ${{ secrets.HOMEBREW_CASK_BUMPER_PRIVATE_KEY }}
+          repositories: ${{ vars.HOMEBREW_TAP_REPOSITORY }}
+          permission-actions: write
+
+      - name: Dispatch bump cask workflow
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_REPO: ${{ vars.HOMEBREW_TAP_REPOSITORY }}
+          CASK: ${{ vars.CASK_TOKEN }}
+          VERSION: ${{ inputs.release-name }}
+        run: |
+          output=$(gh workflow run bump-cask.yml -f cask="$CASK" -f version="$VERSION")
+          run_id=$(grep -oE 'runs/\d+' <<< "$output" | head -1 | cut -d / -f 2)
+          gh run watch "$run_id" --exit-status
