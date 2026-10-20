@@ -6,10 +6,16 @@ on:
   schedule:
     - cron: 0 */8 * * * # 00:00, 08:00, 16:00 every day
 
+permissions: {}
+
 jobs:
   check-release:
     name: Check upstream release
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -34,3 +40,21 @@ jobs:
     outputs:
       new-upstream-version: ${{ steps.check-upstream-release.outputs.new-upstream-version }}
       release-name: ${{ steps.check-upstream-release.outputs.release-name }}
+
+  release:
+    name: Release
+    needs: check-release
+    if: needs.check-release.outputs.new-upstream-version != ''
+
+    permissions:
+      contents: write
+
+    uses: $/.github/workflows/release.yml
+    with:
+      upstream-tag: ${{ needs.check-release.outputs.new-upstream-version }}
+      release-name: ${{ needs.check-release.outputs.release-name }}
+    secrets:
+      SIGNING_CERTIFICATE_BASE64: ${{ secrets.SIGNING_CERTIFICATE_BASE64 }}
+      SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
+      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      HOMEBREW_CASK_BUMPER_PRIVATE_KEY: ${{ secrets.HOMEBREW_CASK_BUMPER_PRIVATE_KEY }}
