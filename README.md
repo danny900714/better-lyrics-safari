@@ -40,7 +40,9 @@ There are two ways to install the extension:
 
 If you have installed [Homebrew](https://brew.sh), you can install Better Lyrics with:
 
-`brew install danny900714/tap/better-lyrics`
+```shell
+brew install danny900714/tap/better-lyrics
+```
 
 ### Method 2: Download manually from Latest GitHub Release
 
