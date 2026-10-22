@@ -42,7 +42,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - name: Checkout upstream repository
         env:
@@ -61,7 +61,7 @@ jobs:
         working-directory: ${{ runner.temp }}/better-lyrics
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: 22
           package-manager-cache: false
@@ -96,7 +96,7 @@ jobs:
         working-directory: ${{ runner.temp }}/better-lyrics
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           path: ${{ runner.temp }}/better-lyrics/${{ env.DMG_NAME }}
           archive: false
@@ -112,12 +112,12 @@ jobs:
 
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v8.0.2
         with:
           name: ${{ env.DMG_NAME }}
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@v3.0.3
         with:
           name: ${{ inputs.release-name }}
           tag_name: v${{ inputs.release-name }}
@@ -134,7 +134,7 @@ jobs:
     steps:
       - name: Create GitHub App token
         id: app-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@v3.3.0
         with:
           client-id: ${{ vars.HOMEBREW_CASK_BUMPER_CLIENT_ID }}
           private-key: ${{ secrets.HOMEBREW_CASK_BUMPER_PRIVATE_KEY }}
