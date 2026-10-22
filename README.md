@@ -70,7 +70,9 @@ This is expected. Use **one** of the options below to allow it. You only need to
 
 1. Open **Terminal**: press `⌘ Space`, type `Terminal`, and press Return.
 2. Copy the command below, paste it into the Terminal window, and press Return:
-   `xattr -dr com.apple.quarantine /Applications/Better Lyrics.app`
+   ```
+   xattr -dr com.apple.quarantine /Applications/Better Lyrics.app
+   ```
 3. Open Better Lyrics from your **Applications** folder as usual.
 
 ## Enable Better Lyrics on Safari
