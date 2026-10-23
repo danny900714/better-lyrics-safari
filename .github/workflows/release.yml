@@ -32,6 +32,9 @@ env:
 
 permissions: {}
 
+concurrency:
+  group: release-${{ inputs.release-name }}
+
 jobs:
   build:
     name: Build
