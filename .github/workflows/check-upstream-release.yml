@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - shell-rewrite
   schedule:
     - cron: 46 * * * *  # At minute 46 every hour
 
