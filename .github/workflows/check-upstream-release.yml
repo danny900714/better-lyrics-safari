@@ -3,8 +3,9 @@ on:
   push:
     branches:
       - main
+      - shell-rewrite
   schedule:
-    - cron: 0 */8 * * * # 00:00, 08:00, 16:00 every day
+    - cron: 46 * * * *  # At minute 46 every hour
 
 permissions: {}
 
@@ -20,22 +21,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7.0.1
 
-      - name: Cache
-        uses: actions/cache@v6.1.0
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
       - name: Check upstream release
         id: check-upstream-release
-        run: cargo run -r --bin check_upstream_release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: scripts/check-upstream-release.sh
 
     outputs:
       new-upstream-version: ${{ steps.check-upstream-release.outputs.new-upstream-version }}
