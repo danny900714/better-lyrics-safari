@@ -36,7 +36,9 @@ jobs:
     if: needs.check-release.outputs.new-upstream-version != ''
 
     permissions:
-      contents: write
+      contents: write     # for release
+      id-token: write     # for attestations
+      attestations: write # for attestations
 
     uses: $/.github/workflows/release.yml
     with:
