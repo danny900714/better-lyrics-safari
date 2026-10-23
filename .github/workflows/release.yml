@@ -78,11 +78,8 @@ jobs:
       - name: Install create-dmg
         run: npm install -g create-dmg
 
-      - name: Check safari patch
-        run: git apply --check --stat "$GITHUB_WORKSPACE/safari.patch"
-
       - name: Apply safari patch
-        run: git apply "$GITHUB_WORKSPACE/safari.patch"
+        run: git apply --stat --apply "$GITHUB_WORKSPACE/$CURRENT_REPOSITORY_PATH/safari.patch"
 
       - name: Install dependencies
         run: npm ci
