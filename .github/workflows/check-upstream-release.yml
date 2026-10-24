@@ -9,7 +9,7 @@ on:
 permissions: {}
 
 jobs:
-  check-release:
+  check-upstream-release:
     name: Check upstream release
     runs-on: ubuntu-latest
 
@@ -30,22 +30,20 @@ jobs:
       new-upstream-version: ${{ steps.check-upstream-release.outputs.new-upstream-version }}
       release-name: ${{ steps.check-upstream-release.outputs.release-name }}
 
-  release:
-    name: Release
-    needs: check-release
-    if: needs.check-release.outputs.new-upstream-version != ''
+  dispatch-release:
+    name: Dispatch release workflow
+    needs: check-upstream-release
+    if: needs.check-upstream-release.outputs.new-upstream-version != ''
+    runs-on: ubuntu-latest
 
     permissions:
-      contents: write     # for release
-      id-token: write     # for attestations
-      attestations: write # for attestations
+      actions: write  # Dispatch release workflow
 
-    uses: $/.github/workflows/release.yml
-    with:
-      upstream-tag: ${{ needs.check-release.outputs.new-upstream-version }}
-      release-name: ${{ needs.check-release.outputs.release-name }}
-    secrets:
-      SIGNING_CERTIFICATE_BASE64: ${{ secrets.SIGNING_CERTIFICATE_BASE64 }}
-      SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
-      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-      HOMEBREW_CASK_BUMPER_PRIVATE_KEY: ${{ secrets.HOMEBREW_CASK_BUMPER_PRIVATE_KEY }}
+    steps:
+      - name: Dispatch release workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          UPSTREAM_TAG: ${{ needs.check-upstream-release.outputs.new-upstream-version }}
+          RELEASE_NAME: ${{ needs.check-upstream-release.outputs.release-name }}
+        run: gh workflow run release.yml -f upstream-tag="$UPSTREAM_TAG" -f release-name="$RELEASE_NAME"

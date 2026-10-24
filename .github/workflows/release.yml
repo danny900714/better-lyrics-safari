@@ -2,7 +2,7 @@ name: Release
 run-name: Release ${{ inputs.release-name }} (based on Better Lyrics ${{ inputs.upstream-tag }})
 on:
   workflow_dispatch:
-    inputs: &inputs
+    inputs:
       upstream-tag:
         description: The tag of the upstream repository to release from
         required: true
@@ -11,21 +11,6 @@ on:
         description: The name of the release
         required: true
         type: string
-  workflow_call:
-    inputs: *inputs
-    secrets:
-      SIGNING_CERTIFICATE_BASE64:
-        description: Base64-encoded Apple signing certificate
-        required: true
-      SIGNING_CERTIFICATE_PASSWORD:
-        description: Password for the signing certificate
-        required: true
-      KEYCHAIN_PASSWORD:
-        description: Password for the keychain
-        required: true
-      HOMEBREW_CASK_BUMPER_PRIVATE_KEY:
-        description: Private key for the Homebrew Cask Bumper GitHub App
-        required: true
 
 env:
   DMG_NAME: better-lyrics-${{ inputs.release-name }}.dmg
