@@ -116,7 +116,7 @@ jobs:
           name: ${{ env.DMG_NAME }}
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v3.0.3
+        uses: softprops/action-gh-release@v3.0.4
         with:
           name: ${{ inputs.release-name }}
           tag_name: v${{ inputs.release-name }}
