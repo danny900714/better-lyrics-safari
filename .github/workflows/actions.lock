@@ -4,7 +4,7 @@
 version: 'v0.0.3'
 workflows:
     '.github/workflows/check-upstream-release.yml':
-        - 'actions/checkout@v7.0.1'
+        - 'danny900714/actions@main'
     '.github/workflows/release.yml':
         - 'actions/attest@v4.2.2'
         - 'actions/checkout@v7.0.1'
@@ -44,6 +44,11 @@ dependencies:
         commit: 'sha1-cf430e030ddbb5b0abf93d22962f4752f3646cd9'
         owner_id: 44036562
         repo_id: 192625955
+    'danny900714/actions@main':
+        ref: 'main'
+        commit: 'sha1-94e49972718cfb43fde08ebf7268a23d336920c1'
+        owner_id: 37932792
+        repo_id: 1449205672
     'softprops/action-gh-release@v3.0.4':
         ref: 'v3.0.4'
         commit: 'sha1-8a0cd651e5b2365bd640854a3fa5dfc70e4875f3'
