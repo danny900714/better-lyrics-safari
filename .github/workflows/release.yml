@@ -206,7 +206,7 @@ jobs:
     steps:
       - name: Create GitHub App token
         id: app-token
-        uses: actions/create-github-app-token@v3.3.0
+        uses: actions/create-github-app-token@v3.4.0
         with:
           client-id: ${{ vars.HOMEBREW_CASK_BUMPER_CLIENT_ID }}
           private-key: ${{ secrets.HOMEBREW_CASK_BUMPER_PRIVATE_KEY }}
